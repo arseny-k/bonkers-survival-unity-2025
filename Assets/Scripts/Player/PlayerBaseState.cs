@@ -19,6 +19,13 @@ public class GroundedState : PlayerBaseState
 
     public override void Update()
     {
+
+        if (Ctx.AttackAction.WasPerformedThisFrame())
+        {
+            Ctx.ChangeState(Ctx.AttackState);
+            return;
+        }
+
         // Если мы на земле скорость константа.
         if (Ctx.VerticalVelocity.y < 0)
         {
@@ -43,6 +50,8 @@ public class GroundedState : PlayerBaseState
         {
             Ctx.ChangeState(Ctx.AirState);
         }
+
+        Ctx.UpdateAnimationState();
     }
 
     public override void Exit() { }
@@ -83,4 +92,59 @@ public class AirState : PlayerBaseState
     }
 
     public override void Exit() { }
+}
+
+public class AttackState : PlayerBaseState
+{
+    private float _timer;
+    private bool _damageDealt;
+
+    public AttackState(PlayerController ctx) : base(ctx) { }
+
+    public override void Enter()
+    {
+        _timer = 0f;
+        _damageDealt = false;
+
+        Ctx.Controller.Move(Vector3.zero);
+
+        Debug.Log("Attack Start");
+        
+        Ctx.animator.SetTrigger("Attack");
+
+    }
+
+    public override void Update()
+    {
+        _timer += Time.deltaTime;
+
+        Ctx.VerticalVelocity.y += Ctx.gravityValue * Time.deltaTime;
+        Ctx.Controller.Move(Ctx.VerticalVelocity * Time.deltaTime);
+
+        if (_timer >= Ctx.attackLag && !_damageDealt)
+        {
+            PerformDamage();
+            _damageDealt = true;
+        }
+
+        if (_timer >= Ctx.attackDuration)
+        {
+            Ctx.ChangeState(Ctx.GroundedState);
+        }
+    }
+
+    public override void Exit() { }
+
+    private void PerformDamage()
+    {
+        Collider[] hits = Physics.OverlapSphere(Ctx.attackPoint.position, Ctx.attackRange, Ctx.enemyLayers);
+
+        foreach (Collider hit in hits)
+        {
+            if (hit.TryGetComponent<IDamageable>(out var target))
+            {
+                target.TakeDamage(Ctx.attackDamage);
+            }
+        }
+    }
 }

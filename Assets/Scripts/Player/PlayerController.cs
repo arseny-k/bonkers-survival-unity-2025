@@ -10,16 +10,28 @@ public class PlayerController : MonoBehaviour
     public float jumpHeight = 1.5f;
     public float gravityValue = -20f;
 
+    [Header("Combat Settings")]
+    public float attackRange = 1.5f;
+    public int attackDamage = 10;
+    public float attackDuration = 0.5f;
+    public float attackLag = 0.2f;
+    public LayerMask enemyLayers;
+    public Transform attackPoint;
+
     [Tooltip("Насколько быстро тело игрока поворачивается за камерой")]
     public float rotationSmoothness = 15f;
 
     [Header("Input System")]
     public InputActionAsset inputAsset;
 
+    [Header("Visuals")]
+    public Animator animator;
+
     // Actions
     public InputAction MoveAction { get; private set; }
     public InputAction JumpAction { get; private set; }
     public InputAction SprintAction { get; private set; }
+    public InputAction AttackAction { get; private set; }
 
     // Components
     public CharacterController Controller { get; private set; }
@@ -29,6 +41,7 @@ public class PlayerController : MonoBehaviour
     private PlayerBaseState _currentState;
     public PlayerBaseState GroundedState;
     public PlayerBaseState AirState;
+    public PlayerBaseState AttackState;
 
     [Header("Debug Info")]
     public Vector3 VerticalVelocity;
@@ -42,9 +55,11 @@ public class PlayerController : MonoBehaviour
         MoveAction = playerMap.FindAction("Move");
         JumpAction = playerMap.FindAction("Jump");
         SprintAction = playerMap.FindAction("Sprint");
+        AttackAction = playerMap.FindAction("Attack");
 
         GroundedState = new GroundedState(this);
         AirState = new AirState(this);
+        AttackState = new AttackState(this);
     }
 
     private void OnEnable() => inputAsset.FindActionMap("Player").Enable();
@@ -92,6 +107,17 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void UpdateAnimationState()
+    {
+        if (animator == null) return;
+
+        Vector3 horizontalVelocity = new Vector3(Controller.velocity.x, 0, Controller.velocity.z);
+        float speed = horizontalVelocity.magnitude;
+
+        // Плавная интерполяция (Damp) значения Speed к реальной скорости
+        animator.SetFloat("Speed", speed, 0.1f, Time.deltaTime);
+    }
+
     private void OnDrawGizmos()
     {
 
@@ -109,6 +135,10 @@ public class PlayerController : MonoBehaviour
 
         Gizmos.color = Color.blue;
         Gizmos.DrawRay(startPos, transform.forward * 1.5f);
+
+        if (attackPoint == null) return;
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(attackPoint.position, attackRange);
     }
 
 }
