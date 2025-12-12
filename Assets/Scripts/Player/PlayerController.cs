@@ -17,6 +17,7 @@ public class PlayerController : MonoBehaviour
     public float attackLag = 0.2f;
     public LayerMask enemyLayers;
     public Transform attackPoint;
+    private Vector3 _impactForce;
 
     [Tooltip("Насколько быстро тело игрока поворачивается за камерой")]
     public float rotationSmoothness = 15f;
@@ -139,6 +140,26 @@ public class PlayerController : MonoBehaviour
         if (attackPoint == null) return;
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(attackPoint.position, attackRange);
+    }
+
+    public void AddImpact(Vector3 dir, float force)
+    {
+        dir.Normalize();
+        if (dir.y < 0) dir.y = -dir.y;
+        _impactForce += dir.normalized * force / 3.0f;
+    }
+
+    public void ApplyGravityAndMove(Vector3 motion)
+    {
+        VerticalVelocity.y += gravityValue * Time.deltaTime;
+
+        if (_impactForce.magnitude > 0.2f)
+        {
+            Controller.Move(_impactForce * Time.deltaTime);
+            _impactForce = Vector3.Lerp(_impactForce, Vector3.zero, 5 * Time.deltaTime);
+        }
+
+        Controller.Move(motion + VerticalVelocity * Time.deltaTime);
     }
 
 }

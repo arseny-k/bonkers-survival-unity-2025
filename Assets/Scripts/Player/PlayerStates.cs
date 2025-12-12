@@ -43,7 +43,7 @@ public class GroundedState : PlayerBaseState
 
         Ctx.VerticalVelocity.y += Ctx.gravityValue * Time.deltaTime;
 
-        Ctx.Controller.Move(horizontalMove + Ctx.VerticalVelocity * Time.deltaTime);
+        Ctx.ApplyGravityAndMove(horizontalMove + Ctx.VerticalVelocity * Time.deltaTime);
 
         // Если после Move мы оказались в воздухе переходим в AirState
         if (!Ctx.Controller.isGrounded)
@@ -83,7 +83,7 @@ public class AirState : PlayerBaseState
 
         Ctx.VerticalVelocity.y += Ctx.gravityValue * Time.deltaTime;
 
-        Ctx.Controller.Move(_inertia + Ctx.VerticalVelocity * Time.deltaTime);
+        Ctx.ApplyGravityAndMove(_inertia + Ctx.VerticalVelocity * Time.deltaTime);
 
         if (Ctx.Controller.isGrounded && Ctx.VerticalVelocity.y < 0)
         {
@@ -106,7 +106,7 @@ public class AttackState : PlayerBaseState
         _timer = 0f;
         _damageDealt = false;
 
-        Ctx.Controller.Move(Vector3.zero);
+        Ctx.ApplyGravityAndMove(Vector3.zero);
 
         Debug.Log("Attack Start");
         
@@ -119,7 +119,7 @@ public class AttackState : PlayerBaseState
         _timer += Time.deltaTime;
 
         Ctx.VerticalVelocity.y += Ctx.gravityValue * Time.deltaTime;
-        Ctx.Controller.Move(Ctx.VerticalVelocity * Time.deltaTime);
+        Ctx.ApplyGravityAndMove(Ctx.VerticalVelocity * Time.deltaTime);
 
         if (_timer >= Ctx.attackLag && !_damageDealt)
         {
@@ -143,7 +143,7 @@ public class AttackState : PlayerBaseState
         {
             if (hit.TryGetComponent<IDamageable>(out var target))
             {
-                target.TakeDamage(Ctx.attackDamage);
+                target.TakeDamage(Ctx.attackDamage, Ctx.transform.position);
             }
         }
     }
