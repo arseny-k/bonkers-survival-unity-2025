@@ -21,14 +21,12 @@ public class EnemyHealthBar : MonoBehaviour
             healthSlider.maxValue = healthComponent.maxHealth;
             healthSlider.value = healthComponent.maxHealth;
             
-            // Subscribe to the existing event in Health.cs
             healthComponent.OnDamageTaken.AddListener(UpdateHealth);
         }
     }
 
     private void LateUpdate()
     {
-        // Billboard effect: Always face the camera
         transform.position = healthComponent.transform.position + offset;
         transform.LookAt(transform.position + _cam.forward);
     }
@@ -39,7 +37,7 @@ public class EnemyHealthBar : MonoBehaviour
         
         if (currentHealth <= 0)
         {
-            Destroy(gameObject); // Remove bar on death
+            Destroy(gameObject);
         }
     }
 }

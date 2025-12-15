@@ -42,7 +42,6 @@ public class UIManager : MonoBehaviour
         victoryPanel.SetActive(true);
     }
     
-    // Wire these to Buttons in Inspector
     public void OnRetryClick() => GameManager.Instance.RetryLevel();
     public void OnNextLevelClick() => GameManager.Instance.LoadNextLevel();
     public void OnMenuClick() => GameManager.Instance.ToMainMenu();
